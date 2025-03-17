@@ -124,6 +124,8 @@ import  jwt from 'jsonwebtoken';
     try {
       const id = req.params.id;
       const score = req.body.score;
+      console.log(score, id);
+      
 
       const updatedUser = await UserService.updateScore(id, score);
 
