@@ -4,10 +4,13 @@ import { connectToMongo } from "./DB/DB";
 import router from "./routers/mainRoutes";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { setupSockets } from "./socket/Chess/socket";
+import * as http from "http";
 
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
 
 app.use(
   cors({
@@ -24,12 +27,12 @@ app.use(express.json());
 app.use(cookieParser());
 app.use("/api", router);
 
-// setupSockets(server)
+setupSockets(server);
 
 const startServer = async () => {
   await connectToMongo();
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  server.listen(PORT, () => {
+    console.log(`✅ Server is running on port ${PORT}`);
   });
 };
 
