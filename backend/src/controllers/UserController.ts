@@ -176,6 +176,30 @@ import  jwt from 'jsonwebtoken';
     }
   }
 
+    // Update a user
+    export const updateUserScoreAsArreyController = async (req: Request, res: Response): Promise<void> => {
+      try {
+        const userId = req.params.id;
+        const ScoreAsArrey = req.body;
+        const updatedUser = await UserService.updateUserScoreAsArrey(userId, ScoreAsArrey);
+  
+        if (!updatedUser) {
+          res.status(404).json({ success: false, message: 'User not found' });
+          return;
+        }
+  
+        res.status(200).json({
+          success: true,
+          data: updatedUser
+        });
+      } catch (error: any) {
+        res.status(400).json({
+          success: false,
+          message: error.message || 'Failed to update user'
+        });
+      }
+    }
+
   // Delete a user (change status to inactive)
   export const deleteUser = async (req: Request, res: Response): Promise<void> => {
     try {

@@ -38,6 +38,7 @@ export const createUser = async (userData: Partial<User>, si: string): Promise<U
       isAdmin: false,
       wins: 0,
       score: 0,
+      turn: false,
       scoreAsArrey: [],
       losses: 0,
       status: UserStatus.ACTIVE,
@@ -62,25 +63,33 @@ export const createUser = async (userData: Partial<User>, si: string): Promise<U
     return await Users.findById(userId);
   }
 
-  // Get a user by wallet address
   export const getUserByWalletAddress = async (walletAddress: string): Promise<User | null> => {
     return await Users.findOne({ walletAddress });
   }
 
-  // Update a user
   export const updateUser = async (userId: string, updateData: Partial<User>): Promise<User | null> => {
-    console.log(updateData, userId);
-    
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       throw new Error('Invalid user ID');
     }
-
-    return await Users.findByIdAndUpdate(
+    const a = await Users.findByIdAndUpdate(
       userId,
       { ...updateData },
       { new: true }
-    );
+    );    
+    return a
   }
+
+    export const updateUserScoreAsArrey = async (userId: string, scoreAsArrey: Partial<User>): Promise<User | null> => {      
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        throw new Error('Invalid user ID');
+      }
+      const a = await Users.findByIdAndUpdate(
+        userId,
+        { scoreAsArrey: scoreAsArrey },
+        { new: true }
+      );      
+      return a
+    }
 
   export const deactivateUser = async (userId: string): Promise<boolean> => {
     if (!mongoose.Types.ObjectId.isValid(userId)) {

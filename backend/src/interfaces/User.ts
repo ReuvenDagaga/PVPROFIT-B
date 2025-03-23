@@ -9,6 +9,7 @@ export interface User {
   usdtBalance: number;
   profit: number;
   score: number;
+  turn: boolean;
   scoreAsArrey: number[],
   isAdmin: boolean;
   wins: number;

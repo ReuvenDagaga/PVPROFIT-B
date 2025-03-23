@@ -10,10 +10,9 @@ router.get('/wallet/:walletAddress', UserController.getUserByWallet);
 router.get('/', UserController.getAllUsers);
 router.get('/getUserById/:id', UserController.getUserById);
 router.put('/:id', UserController.updateUser);
+router.put('/ScoreAsArrey/:id', UserController.updateUserScoreAsArreyController);
 router.put('/updateScore/:id', UserController.updatedUserScore);
 router.delete('/:id', UserController.deleteUser);
-
-
 
 // Public routes
 router.get('/available', RoomController.getActiveRooms);

@@ -46,6 +46,10 @@ const usersSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    turn: {
+      type: Boolean,
+      default: null,
+    },
     status: {
       type: String,
       enum: Object.values(UserStatus),
