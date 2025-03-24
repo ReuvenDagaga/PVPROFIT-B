@@ -6,13 +6,7 @@ import { Users } from "../../models/Users";
 
 const gameInstances: Record<string, { game: Chess, players: { white: string, black: string } }> = {};
 
-export const setupSockets = (server: HttpServer) => {
-  const io = new Server(server, {
-    cors: {
-      origin: "*",
-      methods: ["GET", "POST"]
-    }
-  });
+export const setupChessSocket = (io: Server) => {
 
   io.on("connection", (socket) => {
     console.log("🟢 Socket connected:", socket.id);

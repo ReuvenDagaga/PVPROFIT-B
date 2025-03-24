@@ -4,8 +4,9 @@ import { connectToMongo } from "./DB/DB";
 import router from "./routers/mainRoutes";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { setupSockets } from "./socket/Chess/socket";
 import * as http from "http";
+import { Server } from "socket.io";
+import { setupAllSockets } from "./socket/mainSocket";
 
 dotenv.config();
 
@@ -27,7 +28,8 @@ app.use(express.json());
 app.use(cookieParser());
 app.use("/api", router);
 
-setupSockets(server);
+const io = new Server(server, { cors: { origin: "*", methods: ["GET", "POST"] } });
+setupAllSockets(io);
 
 const startServer = async () => {
   await connectToMongo();
