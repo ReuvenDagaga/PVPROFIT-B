@@ -209,3 +209,10 @@ export const createUser = async (userData: Partial<User>, si: string): Promise<U
       return false;
     }
   }
+
+  export const getUserByReferralCodeService = async (refferalCode: string): Promise<User | null> => {
+    const user = await Users.findOne({ refferalCode });
+    console.log(user);
+    
+    return user;
+  }

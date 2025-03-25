@@ -16,6 +16,7 @@ router.put('/updateScore/:id', UserController.updatedUserScore);
 router.delete('/:id', UserController.deleteUser);
 router.post('/saveEmail', EmailController.saveEmail);
 router.get('/getEmail', EmailController.getAllEmails);
+router.get('/getReferralCodeIsCorrect/:password', UserController.getUserByReferralCode);
 
 // Public routes
 router.get('/available', RoomController.getActiveRooms);

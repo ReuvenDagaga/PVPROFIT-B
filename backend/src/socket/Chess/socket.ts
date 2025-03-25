@@ -10,23 +10,17 @@ export const setupChessSocket = (io: Server) => {
 
   io.on("connection", (socket) => {
     console.log("🟢 Socket connected:", socket.id);
-
     socket.on("joinRoom", async ({ roomId, userId }) => {
-      console.log(`➡️ joinRoom request - roomId: ${roomId}, userId: ${userId}`);
-
       try {
         const user = await Users.findById(userId);
         const room = await Rooms.findById(roomId);
 
         if (!user || !room) {
-          console.log("❌ User or room not found");
           socket.emit("error", "User or room not found");
           return;
         }
 
         socket.join(roomId);
-        console.log(`✅ ${user.username} joined room ${roomId}`);
-
         if (!room.users.includes(user.username)) {
           room.users.push(user.username);
           await room.save();
@@ -34,12 +28,18 @@ export const setupChessSocket = (io: Server) => {
 
         if (room.users.length < 2) {
           socket.emit("waitingForPlayer", {
-            message: "⏳ ממתין לשחקן השני...",
+            message: "⏳ waiting for player",
           });
           return;
         }
 
         if (!room.isStarted) {
+          if (user.usdtBalance < room.price) {
+            socket.emit("error", "Not enough balance");
+            return;
+          }
+          user.usdtBalance -= room.price;
+          await user.save();
           room.isStarted = true;
           await room.save();
 
@@ -57,11 +57,10 @@ export const setupChessSocket = (io: Server) => {
             turn: "w",
             white,
             black,
-            message: `המשחק התחיל! תור של ${white}`,
+            message: `game started now turn for ${white}`,
           });
         }
       } catch (err) {
-        console.error("❌ Error in joinRoom:", err);
         socket.emit("error", "Error joining room");
       }
     });
@@ -77,7 +76,7 @@ export const setupChessSocket = (io: Server) => {
       const currentTurn = game.turn() === "w" ? players.white : players.black;
 
       if (username !== currentTurn) {
-        socket.emit("notYourTurn", "זה לא התור שלך!");
+        socket.emit("notYourTurn", "is not your turn");
         return;
       }
 
@@ -85,7 +84,6 @@ export const setupChessSocket = (io: Server) => {
       try {
         move = game.move({ from, to, promotion: "q" });
       } catch (err) {
-        console.error("❌ Invalid move:", err);
         socket.emit("invalidMove", { from, to });
         return;
       }
@@ -114,7 +112,7 @@ export const setupChessSocket = (io: Server) => {
           io.to(roomId).emit("gameOver", {
             fen: game.fen(),
             winner,
-            message: `🏁 המשחק הסתיים! המנצח: ${winner}`,
+            message: `🏁 game over the winner is: ${winner}`,
           });
 
           delete gameInstances[roomId];
@@ -127,7 +125,6 @@ export const setupChessSocket = (io: Server) => {
     });
   });
 
-  // טיפול בשגיאות כלליות
   process.on("unhandledRejection", (reason) => {
     console.error("🔥 Unhandled Rejection:", reason);
   });
