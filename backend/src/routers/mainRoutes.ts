@@ -1,6 +1,7 @@
 import express from 'express';
 import * as UserController from '../controllers/UserController';
 import * as RoomController from '../controllers/RoomController';
+import * as EmailController from '../controllers/EmailController';
 
 const router = express.Router();
 
@@ -13,6 +14,8 @@ router.put('/:id', UserController.updateUser);
 router.put('/ScoreAsArrey/:id', UserController.updateUserScoreAsArreyController);
 router.put('/updateScore/:id', UserController.updatedUserScore);
 router.delete('/:id', UserController.deleteUser);
+router.post('/saveEmail', EmailController.saveEmail);
+router.get('/getEmail', EmailController.getAllEmails);
 
 // Public routes
 router.get('/available', RoomController.getActiveRooms);
