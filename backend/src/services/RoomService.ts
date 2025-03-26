@@ -76,7 +76,8 @@ export const getAllRooms = async (
 
 export const joinRoomOrCreate = async (
   userId: string,
-  gameType: GameType
+  gameType: GameType,
+  gamePrice: number
 ): Promise<Room | null> => {
   // בדיקה שהמשתמש קיים
   const user = await Users.findById(userId);
@@ -89,7 +90,7 @@ export const joinRoomOrCreate = async (
 
   // אם אין חדר זמין, ניצור חדר חדש
   if (!room) {
-    room = await createNewRoomWithUser(userId, gameType);
+    room = await createNewRoomWithUser(userId, gameType, gamePrice);
     if (!room) {
       throw new Error("Failed to create new room");
     }
@@ -127,17 +128,16 @@ const findAvailableRoomAndJoin = async (userId: string, gameType: GameType): Pro
 };
 
 // פונקציה ליצירת חדר חדש עם המשתמש
-const createNewRoomWithUser = async (userId: string, gameType: GameType): Promise<Room | null> => {
+const createNewRoomWithUser = async (userId: string, gameType: GameType, gamePrice: number): Promise<Room | null> => {
   const newRoom = await createRoom({
     gameType,
     users: [userId],
-    price: 0,
+    price: gamePrice,
   });
   
   return newRoom;
 };
 
-// פונקציית המתנה לחדר מלא
 const waitForRoomToFill = async (
   roomId: string | mongoose.Types.ObjectId,
   maxWaitTime: number,
@@ -159,11 +159,7 @@ const waitForRoomToFill = async (
       currentRoom.isStarted = true;
       await currentRoom.save();
       return currentRoom;
-    }
-    
-    // לוג תקין
-    console.log(`Room ${roomId} has ${currentRoom.users.length}/2 players. Waiting...`);
-    
+    }    
     // המתן לפני הבדיקה הבאה
     await wait(pollInterval);
   }

@@ -98,6 +98,7 @@ export const joinRoomOrCreate = async (
   try {
     const userId = req.body.userId;
     const gameType = req.body.gameType as GameType;
+    const gamePrice = req.body.gamePrice;
 
     if (!userId || !gameType) {
       res.status(400).json({
@@ -106,7 +107,7 @@ export const joinRoomOrCreate = async (
       });
       return;
     }
-    const room = await RoomService.joinRoomOrCreate(userId, gameType);
+    const room = await RoomService.joinRoomOrCreate(userId, gameType, gamePrice);
     res.status(200).json({
       success: true,
       data: room,

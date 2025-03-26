@@ -4,12 +4,12 @@ import { Chess } from "chess.js";
 import { Rooms } from "../../models/Rooms";
 import { Users } from "../../models/Users";
 
-const gameInstances: Record<string, { game: Chess, players: { white: string, black: string } }> = {};
+const gameInstances: Record<string, { game: Chess; players: { white: string; black: string } }> = {};
 
 export const setupChessSocket = (io: Server) => {
-
   io.on("connection", (socket) => {
     console.log("🟢 Socket connected:", socket.id);
+
     socket.on("joinRoom", async ({ roomId, userId }) => {
       try {
         const user = await Users.findById(userId);
@@ -21,11 +21,14 @@ export const setupChessSocket = (io: Server) => {
         }
 
         socket.join(roomId);
+
+        // Add user to the room's user list if not already present
         if (!room.users.includes(user.username)) {
           room.users.push(user.username);
           await room.save();
         }
 
+        // If there's only one player in the room, let them know they're waiting
         if (room.users.length < 2) {
           socket.emit("waitingForPlayer", {
             message: "⏳ waiting for player",
@@ -33,25 +36,46 @@ export const setupChessSocket = (io: Server) => {
           return;
         }
 
+        // If the room hasn't started yet, handle game initialization
         if (!room.isStarted) {
+          // Check user balance to ensure they can pay the room price
           if (user.usdtBalance < room.price) {
             socket.emit("error", "Not enough balance");
             return;
           }
+
+          // Deduct room price and mark the room as started
           user.usdtBalance -= room.price;
           await user.save();
+
           room.isStarted = true;
           await room.save();
 
+          // Determine white and black players
           const [white, black] = room.users;
 
+          // Create a new game instance for this room
           gameInstances[roomId] = {
             game: new Chess(),
-            players: { white, black }
+            players: { white, black },
           };
+          const whiteUser = await Users.findOne({ _id: white}).lean();
+          const blackUser = await Users.findOne({ _id: black}).lean();
 
-          console.log(`♟️ Game started in room ${roomId} between ${white} (white) and ${black} (black)`);
+          io.to(roomId).emit("playerInfo", {
+            whitePlayer: { 
+              username: whiteUser?.username || white,
+              wins: whiteUser?.wins || 0,
+              losses: whiteUser?.losses || 0,
+            },
+            blackPlayer: {
+              username: blackUser?.username || black,
+              wins: blackUser?.wins || 0,
+              losses: blackUser?.losses || 0,
+            },
+          });
 
+          // Emit the initial "gameState" event
           io.to(roomId).emit("gameState", {
             fen: gameInstances[roomId].game.fen(),
             turn: "w",
@@ -93,6 +117,7 @@ export const setupChessSocket = (io: Server) => {
         return;
       }
 
+      // Broadcast the updated state to the room
       io.to(roomId).emit("gameState", {
         fen: game.fen(),
         lastMove: move,
@@ -101,6 +126,7 @@ export const setupChessSocket = (io: Server) => {
         black: players.black,
       });
 
+      // Check for game over conditions
       if (game.isGameOver()) {
         const room = await Rooms.findById(roomId);
         if (room) {
@@ -115,6 +141,7 @@ export const setupChessSocket = (io: Server) => {
             message: `🏁 game over the winner is: ${winner}`,
           });
 
+          // Clean up the game instance for this room
           delete gameInstances[roomId];
         }
       }
@@ -125,6 +152,7 @@ export const setupChessSocket = (io: Server) => {
     });
   });
 
+  // Global error handlers
   process.on("unhandledRejection", (reason) => {
     console.error("🔥 Unhandled Rejection:", reason);
   });

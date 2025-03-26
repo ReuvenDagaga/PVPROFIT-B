@@ -32,8 +32,8 @@ export const createUser = async (userData: Partial<User>, si: string): Promise<U
     const newUser: User = await Users.create({
       username: 'User' + Math.floor(Math.random() * 1000),
       walletAddress: userData.walletAddress,
-      ePvpBalance: 100,
-      usdtBalance: 0,
+      ePvpBalance: 1000,
+      usdtBalance: 100,
       profit: 0,
       isAdmin: false,
       wins: 0,
